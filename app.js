@@ -76,10 +76,14 @@ document.addEventListener("DOMContentLoaded", () => {
     setupQuizEvents();
 });
 
+let quizViewMode = "master-detail"; // "master-detail" atau "table"
+
 function setupQuizEvents() {
     const searchInput = document.getElementById("searchQuizStudent");
     const classFilter = document.getElementById("filterQuizClass");
     const btnExport = document.getElementById("btnExportQuizCSV");
+    const btnMasterDetail = document.getElementById("btnViewMasterDetail");
+    const btnTable = document.getElementById("btnViewTable");
 
     if (searchInput) {
         searchInput.addEventListener("input", () => renderQuizResultsMonitor());
@@ -90,7 +94,49 @@ function setupQuizEvents() {
     if (btnExport) {
         btnExport.addEventListener("click", () => downloadQuizCSV());
     }
+    if (btnMasterDetail) {
+        btnMasterDetail.addEventListener("click", () => switchQuizViewMode("master-detail"));
+    }
+    if (btnTable) {
+        btnTable.addEventListener("click", () => switchQuizViewMode("table"));
+    }
+
+    updateClassDropdownFilter();
+    renderQuizResultsMonitor();
 }
+
+window.switchQuizViewMode = function(mode) {
+    quizViewMode = mode;
+    const containerMD = document.getElementById("quizMasterDetailViewContainer");
+    const containerTable = document.getElementById("quizTableViewContainer");
+    const btnMD = document.getElementById("btnViewMasterDetail");
+    const btnTab = document.getElementById("btnViewTable");
+
+    if (mode === "master-detail") {
+        if (containerMD) containerMD.classList.remove("hidden");
+        if (containerTable) containerTable.classList.add("hidden");
+        if (btnMD) {
+            btnMD.style.background = "#7C3AED";
+            btnMD.style.color = "white";
+        }
+        if (btnTab) {
+            btnTab.style.background = "transparent";
+            btnTab.style.color = "#64748b";
+        }
+    } else {
+        if (containerMD) containerMD.classList.add("hidden");
+        if (containerTable) containerTable.classList.remove("hidden");
+        if (btnMD) {
+            btnMD.style.background = "transparent";
+            btnMD.style.color = "#64748b";
+        }
+        if (btnTab) {
+            btnTab.style.background = "#7C3AED";
+            btnTab.style.color = "white";
+        }
+    }
+    renderQuizResultsMonitor();
+};
 
 // Initialize Firebase & Listen Real-Time
 function initFirebase() {
@@ -227,11 +273,69 @@ function initFirebase() {
 let quizResultsList = [];
 let selectedStudentKey = null;
 
+const defaultQuizResults = [
+    { id: "demo-q1", name: "Aldo Septian", class: "5A", title: "Kuis Babak 1", score: 85, time: "2026-09-30 08:30" },
+    { id: "demo-q2", name: "Aldo Septian", class: "5A", title: "Kuis Babak 2", score: 90, time: "2026-09-30 09:15" },
+    { id: "demo-q3", name: "Aldo Septian", class: "5A", title: "Asesmen Akhir", score: 95, time: "2026-09-30 10:00" },
+
+    { id: "demo-q4", name: "Budi Santoso", class: "5A", title: "Kuis Babak 1", score: 70, time: "2026-09-30 08:32" },
+    { id: "demo-q5", name: "Budi Santoso", class: "5A", title: "Kuis Babak 2", score: 75, time: "2026-09-30 09:20" },
+    { id: "demo-q6", name: "Budi Santoso", class: "5A", title: "Asesmen Akhir", score: 60, time: "2026-09-30 10:05" },
+
+    { id: "demo-q7", name: "Citra Dewi", class: "5B", title: "Kuis Babak 1", score: 100, time: "2026-09-30 08:40" },
+    { id: "demo-q8", name: "Citra Dewi", class: "5B", title: "Kuis Babak 2", score: 95, time: "2026-09-30 09:30" },
+    { id: "demo-q9", name: "Citra Dewi", class: "5B", title: "Asesmen Akhir", score: 90, time: "2026-09-30 10:15" }
+];
+
+function calculateStudentAccumulatedGrade(quizzes) {
+    let q1 = null, q2 = null, q3 = null;
+
+    quizzes.forEach(q => {
+        const titleLower = (q.title || "").toLowerCase();
+        if (titleLower.includes("babak 1") || titleLower.includes("kuis 1") || titleLower.includes("kuis babak 1")) {
+            if (!q1 || q.score > q1.score) q1 = q;
+        } else if (titleLower.includes("babak 2") || titleLower.includes("kuis 2") || titleLower.includes("kuis babak 2")) {
+            if (!q2 || q.score > q2.score) q2 = q;
+        } else if (titleLower.includes("asesmen") || titleLower.includes("babak 3") || titleLower.includes("kuis 3") || titleLower.includes("kuis babak 3")) {
+            if (!q3 || q.score > q3.score) q3 = q;
+        }
+    });
+
+    // Fallback: Jika ada kuis yang belum teridentifikasi dari judul, petakan secara berurutan
+    const remainingQuizzes = quizzes.filter(q => q !== q1 && q !== q2 && q !== q3);
+    if (!q1 && remainingQuizzes.length > 0) q1 = remainingQuizzes.shift();
+    if (!q2 && remainingQuizzes.length > 0) q2 = remainingQuizzes.shift();
+    if (!q3 && remainingQuizzes.length > 0) q3 = remainingQuizzes.shift();
+
+    const s1 = q1 ? q1.score : 0;
+    const s2 = q2 ? q2.score : 0;
+    const s3 = q3 ? q3.score : 0;
+
+    const contrib1 = s1 * 0.20;
+    const contrib2 = s2 * 0.40;
+    const contrib3 = s3 * 0.40;
+
+    const finalScore = parseFloat((contrib1 + contrib2 + contrib3).toFixed(1));
+    const takenCount = (q1 ? 1 : 0) + (q2 ? 1 : 0) + (q3 ? 1 : 0);
+
+    return {
+        q1: q1 ? { score: s1, title: q1.title, contrib: contrib1 } : null,
+        q2: q2 ? { score: s2, title: q2.title, contrib: contrib2 } : null,
+        q3: q3 ? { score: s3, title: q3.title, contrib: contrib3 } : null,
+        finalScore,
+        takenCount,
+        isComplete: takenCount === 3,
+        passed: finalScore >= 75
+    };
+}
+
 function updateClassDropdownFilter() {
     const select = document.getElementById("filterQuizClass");
     if (!select) return;
+
+    let sourceData = quizResultsList.length > 0 ? quizResultsList : defaultQuizResults;
     const classes = new Set(["all"]);
-    quizResultsList.forEach(q => { if (q.class) classes.add(q.class); });
+    sourceData.forEach(q => { if (q.class) classes.add(q.class); });
 
     let html = `<option value="all">Semua Kelas</option>`;
     classes.forEach(c => {
@@ -243,32 +347,24 @@ function updateClassDropdownFilter() {
 function renderQuizResultsMonitor() {
     const masterList = document.getElementById("studentMasterList");
     const detailView = document.getElementById("studentDetailView");
-    const statTotal = document.getElementById("statTotalQuiz");
+    const statStudents = document.getElementById("statTotalStudents");
     const statAvg = document.getElementById("statAvgScore");
-    const statPerfect = document.getElementById("statPerfectCount");
+    const statPassed = document.getElementById("statPassedCount");
+    const statRemedial = document.getElementById("statRemedialCount");
     const countBadge = document.getElementById("studentCountBadge");
     const searchVal = (document.getElementById("searchQuizStudent")?.value || "").toLowerCase().trim();
     const classVal = document.getElementById("filterQuizClass")?.value || "all";
 
     if (!masterList || !detailView) return;
 
-    let filtered = quizResultsList;
+    let sourceData = quizResultsList.length > 0 ? quizResultsList : defaultQuizResults;
+
+    let filtered = sourceData;
     if (classVal !== "all") {
         filtered = filtered.filter(q => q.class === classVal);
     }
     if (searchVal !== "") {
         filtered = filtered.filter(q => q.name.toLowerCase().includes(searchVal) || q.class.toLowerCase().includes(searchVal) || q.title.toLowerCase().includes(searchVal));
-    }
-
-    if (statTotal) statTotal.textContent = quizResultsList.length;
-    if (statAvg) {
-        const totalSum = quizResultsList.reduce((acc, curr) => acc + curr.score, 0);
-        const avg = quizResultsList.length > 0 ? Math.round(totalSum / quizResultsList.length) : 0;
-        statAvg.textContent = avg;
-    }
-    if (statPerfect) {
-        const perfects = quizResultsList.filter(q => q.score >= 95).length;
-        statPerfect.textContent = perfects;
     }
 
     // Group items by student key ("Name__Class")
@@ -288,9 +384,29 @@ function renderQuizResultsMonitor() {
     const students = Array.from(studentMap.values());
     if (countBadge) countBadge.textContent = `${students.length} Siswa`;
 
+    // Compute Overall Statistics across students
+    let sumAccum = 0;
+    let passedCount = 0;
+    let remedialCount = 0;
+
+    students.forEach(s => {
+        const accum = calculateStudentAccumulatedGrade(s.quizzes);
+        sumAccum += accum.finalScore;
+        if (accum.passed) passedCount++;
+        else remedialCount++;
+    });
+
+    const avgAccum = students.length > 0 ? (sumAccum / students.length).toFixed(1) : "0";
+
+    if (statStudents) statStudents.textContent = students.length;
+    if (statAvg) statAvg.textContent = avgAccum;
+    if (statPassed) statPassed.textContent = passedCount;
+    if (statRemedial) statRemedial.textContent = remedialCount;
+
     if (students.length === 0) {
         masterList.innerHTML = `<div class="empty-state-banner"><p>Belum ada data siswa.</p></div>`;
         detailView.innerHTML = `<div class="empty-state-banner"><p>Belum ada data nilai kuis siswa yang tersimpan.</p></div>`;
+        renderQuizTableView([]);
         return;
     }
 
@@ -304,12 +420,11 @@ function renderQuizResultsMonitor() {
         const sKey = `${s.name}__${s.class}`;
         const isSelected = (sKey === selectedStudentKey);
         const avatar = `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(s.name)}`;
-        const latestQuiz = s.quizzes[s.quizzes.length - 1] || s.quizzes[0];
-        const lastScore = latestQuiz ? latestQuiz.score : 0;
+        const accum = calculateStudentAccumulatedGrade(s.quizzes);
 
         let scoreBadgeColor = "#10B981";
-        if (lastScore < 50) scoreBadgeColor = "#EF4444";
-        else if (lastScore < 80) scoreBadgeColor = "#F59E0B";
+        if (accum.finalScore < 60) scoreBadgeColor = "#EF4444";
+        else if (accum.finalScore < 75) scoreBadgeColor = "#F59E0B";
 
         const bg = isSelected ? "#F3E8FF" : "#ffffff";
         const border = isSelected ? "#8B5CF6" : "#e2e8f0";
@@ -324,8 +439,11 @@ function renderQuizResultsMonitor() {
                         <div style="font-size: 11px; color: #64748b; font-weight: 600;">Kelas ${escapeHtml(s.class)} • ${s.quizzes.length} Kuis</div>
                     </div>
                 </div>
-                <div style="background: ${scoreBadgeColor}22; color: ${scoreBadgeColor}; font-size: 12px; font-weight: 800; padding: 4px 8px; border-radius: 8px;">
-                    ${lastScore}
+                <div style="text-align: right;">
+                    <div style="background: ${scoreBadgeColor}22; color: ${scoreBadgeColor}; font-size: 12px; font-weight: 800; padding: 4px 8px; border-radius: 8px;">
+                        ${accum.finalScore}
+                    </div>
+                    <div style="font-size: 9px; color: #64748b; font-weight: 700; margin-top: 2px;">AKUMULASI</div>
                 </div>
             </div>
         `;
@@ -335,6 +453,9 @@ function renderQuizResultsMonitor() {
 
     // Render Selected Student's Detail View (Right Column)
     renderStudentDetailView(studentMap.get(selectedStudentKey));
+
+    // Render Table View (Mode 2)
+    renderQuizTableView(students);
 }
 
 window.selectStudentForQuiz = function(sKey) {
@@ -347,42 +468,94 @@ function renderStudentDetailView(studentObj) {
     if (!detailView || !studentObj) return;
 
     const avatar = `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(studentObj.name)}`;
-    const totalQuizzes = studentObj.quizzes.length;
-    const avgScore = Math.round(studentObj.quizzes.reduce((acc, q) => acc + q.score, 0) / totalQuizzes);
+    const accum = calculateStudentAccumulatedGrade(studentObj.quizzes);
 
     let detailHtml = `
-        <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #f1f5f9; padding-bottom: 12px; margin-bottom: 14px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #f1f5f9; padding-bottom: 12px; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
             <div style="display: flex; align-items: center; gap: 12px;">
                 <img src="${avatar}" style="width: 52px; height: 52px; border-radius: 50%; background: #edf2f7; border: 2px solid #8B5CF6;">
                 <div>
                     <h4 style="margin: 0; font-size: 16px; font-weight: 800; color: #1e293b;">${escapeHtml(studentObj.name)}</h4>
-                    <p style="margin: 2px 0 0 0; font-size: 12px; color: #64748b; font-weight: 600;">Kelas ${escapeHtml(studentObj.class)} • Status: Telah Mengerjakan Ujian Kuis</p>
+                    <p style="margin: 2px 0 0 0; font-size: 12px; color: #64748b; font-weight: 600;">Kelas ${escapeHtml(studentObj.class)} • Total Kuis: ${studentObj.quizzes.length}</p>
                 </div>
             </div>
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <div style="background: #F3E8FF; border: 1px solid #DDD6FE; padding: 6px 12px; border-radius: 8px; text-align: center;">
-                    <div style="font-size: 10px; color: #6D28D9; font-weight: 700;">RATA-RATA</div>
-                    <div style="font-size: 16px; font-weight: 800; color: #7C3AED;">${avgScore}</div>
-                </div>
-                <div style="background: #ECFDF5; border: 1px solid #A7F3D0; padding: 6px 12px; border-radius: 8px; text-align: center;">
-                    <div style="font-size: 10px; color: #047857; font-weight: 700;">TOTAL KUIS</div>
-                    <div style="font-size: 16px; font-weight: 800; color: #059669;">${totalQuizzes}</div>
-                </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
                 <button onclick="deleteStudentAllResults('${escapeHtml(studentObj.name)}', '${escapeHtml(studentObj.class)}')" 
                         style="background: #FEF2F2; color: #EF4444; border: 1.5px solid #FCA5A5; border-radius: 8px; padding: 7px 10px; font-size: 11px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s ease;">
-                    🗑️ Hapus Semua Data Siswa Ini
+                    🗑️ Hapus Data Siswa Ini
                 </button>
             </div>
         </div>
 
-        <h5 style="margin: 0 0 10px 0; font-size: 13px; color: #475569; font-weight: 700;">📋 Riwayat & Hasil Kuis Siswa:</h5>
-        <div style="display: flex; flex-direction: column; gap: 10px; overflow-y: auto; max-height: 320px;">
+        <!-- Box Card Akumulasi Nilai (Weighted 20% - 40% - 40%) -->
+        <div style="background: linear-gradient(135deg, #F3E8FF 0%, #EDE9FE 100%); border: 2px solid #DDD6FE; border-radius: 14px; padding: 14px; margin-bottom: 16px; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.06);">
+            <div style="font-size: 12px; font-weight: 800; color: #6D28D9; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px;">
+                <span>🧮 AKUMULASI NILAI AKHIR (BOBOT: 20% + 40% + 40%)</span>
+                <span style="font-size: 11px; background: #ffffff; padding: 3px 10px; border-radius: 12px; color: ${accum.passed ? '#059669' : '#DC2626'}; border: 1.5px solid ${accum.passed ? '#A7F3D0' : '#FCA5A5'}; font-weight: 800;">
+                    ${accum.passed ? '✅ TUNTAS KKM (≥75)' : '⚠️ BELUM TUNTAS (<75)'}
+                </span>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 12px;">
+                <!-- Kuis 1 -->
+                <div style="background: white; border: 1.5px solid #E9D5FF; border-radius: 10px; padding: 10px; text-align: center;">
+                    <div style="font-size: 11px; font-weight: 700; color: #6B21A8;">Kuis 1 (Bobot 20%)</div>
+                    <div style="font-size: 20px; font-weight: 900; color: ${accum.q1 ? '#1E293B' : '#94A3B8'}; margin: 2px 0;">
+                        ${accum.q1 ? accum.q1.score : '-'}
+                    </div>
+                    <div style="font-size: 10px; font-weight: 700; color: #7C3AED; background: #F3E8FF; padding: 2px 6px; border-radius: 6px; display: inline-block;">
+                        +${accum.q1 ? accum.q1.contrib.toFixed(1) : '0.0'} pt
+                    </div>
+                </div>
+
+                <!-- Kuis 2 -->
+                <div style="background: white; border: 1.5px solid #E9D5FF; border-radius: 10px; padding: 10px; text-align: center;">
+                    <div style="font-size: 11px; font-weight: 700; color: #6B21A8;">Kuis 2 (Bobot 40%)</div>
+                    <div style="font-size: 20px; font-weight: 900; color: ${accum.q2 ? '#1E293B' : '#94A3B8'}; margin: 2px 0;">
+                        ${accum.q2 ? accum.q2.score : '-'}
+                    </div>
+                    <div style="font-size: 10px; font-weight: 700; color: #7C3AED; background: #F3E8FF; padding: 2px 6px; border-radius: 6px; display: inline-block;">
+                        +${accum.q2 ? accum.q2.contrib.toFixed(1) : '0.0'} pt
+                    </div>
+                </div>
+
+                <!-- Kuis 3 -->
+                <div style="background: white; border: 1.5px solid #E9D5FF; border-radius: 10px; padding: 10px; text-align: center;">
+                    <div style="font-size: 11px; font-weight: 700; color: #6B21A8;">Kuis 3 / Asesmen (40%)</div>
+                    <div style="font-size: 20px; font-weight: 900; color: ${accum.q3 ? '#1E293B' : '#94A3B8'}; margin: 2px 0;">
+                        ${accum.q3 ? accum.q3.score : '-'}
+                    </div>
+                    <div style="font-size: 10px; font-weight: 700; color: #7C3AED; background: #F3E8FF; padding: 2px 6px; border-radius: 6px; display: inline-block;">
+                        +${accum.q3 ? accum.q3.contrib.toFixed(1) : '0.0'} pt
+                    </div>
+                </div>
+            </div>
+
+            <!-- Formula Summary Footer -->
+            <div style="display: flex; align-items: center; justify-content: space-between; background: #ffffff; padding: 10px 14px; border-radius: 10px; border: 1.5px solid #C084FC; flex-wrap: wrap; gap: 8px;">
+                <div>
+                    <div style="font-size: 10px; color: #64748B; font-weight: 700;">RUMUS AKUMULASI</div>
+                    <div style="font-size: 12px; font-weight: 700; color: #4C1D95;">
+                        (${accum.q1 ? accum.q1.score : 0} × 0.2) + (${accum.q2 ? accum.q2.score : 0} × 0.4) + (${accum.q3 ? accum.q3.score : 0} × 0.4)
+                    </div>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-size: 10px; color: #6B21A8; font-weight: 700;">NILAI AKHIR AKUMULASI</div>
+                    <div style="font-size: 24px; font-weight: 900; color: ${accum.passed ? '#059669' : '#DC2626'}; line-height: 1;">
+                        ${accum.finalScore} <span style="font-size: 13px; font-weight: 600; color: #64748B;">/ 100</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <h5 style="margin: 0 0 10px 0; font-size: 13px; color: #475569; font-weight: 700;">📋 Riwayat Pengerjaan Kuis:</h5>
+        <div style="display: flex; flex-direction: column; gap: 10px; overflow-y: auto; max-height: 260px;">
     `;
 
     studentObj.quizzes.forEach(q => {
         let badgeBg = "#10B981";
         let predikat = "Lulus Sempurna 🌟";
-        let evalText = "Siswa sudah menguasai seluruh materi edukasi ekonomi ini dengan sangat baik!";
+        let evalText = "Siswa telah menguasai seluruh materi edukasi ekonomi ini dengan baik!";
 
         if (q.score < 50) {
             badgeBg = "#EF4444";
@@ -419,11 +592,69 @@ function renderStudentDetailView(studentObj) {
     detailView.innerHTML = detailHtml;
 }
 
+function renderQuizTableView(students) {
+    const tableContainer = document.getElementById("quizTableContent");
+    if (!tableContainer) return;
+
+    if (!students || students.length === 0) {
+        tableContainer.innerHTML = `<div class="empty-state-banner"><p>Belum ada data siswa untuk ditampilkan dalam tabel.</p></div>`;
+        return;
+    }
+
+    let tableHtml = `
+        <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">
+            <thead>
+                <tr style="background: #7C3AED; color: white; font-weight: 700;">
+                    <th style="padding: 10px 12px; border-top-left-radius: 8px;">No</th>
+                    <th style="padding: 10px 12px;">Nama Siswa</th>
+                    <th style="padding: 10px 12px;">Kelas</th>
+                    <th style="padding: 10px 12px; text-align: center;">Kuis 1 (20%)</th>
+                    <th style="padding: 10px 12px; text-align: center;">Kuis 2 (40%)</th>
+                    <th style="padding: 10px 12px; text-align: center;">Kuis 3 / Asesmen (40%)</th>
+                    <th style="padding: 10px 12px; text-align: center;">Nilai Akhir (Akumulasi)</th>
+                    <th style="padding: 10px 12px; text-align: center; border-top-right-radius: 8px;">Status KKM</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    students.forEach((s, idx) => {
+        const accum = calculateStudentAccumulatedGrade(s.quizzes);
+        const q1Val = accum.q1 ? accum.q1.score : "-";
+        const q2Val = accum.q2 ? accum.q2.score : "-";
+        const q3Val = accum.q3 ? accum.q3.score : "-";
+        const bgRow = idx % 2 === 0 ? "#ffffff" : "#f8fafc";
+        const statusBadge = accum.passed 
+            ? `<span style="background: #DEF7EC; color: #03543F; font-weight: 800; padding: 4px 10px; border-radius: 12px; font-size: 11px;">TUNTAS (≥75)</span>`
+            : `<span style="background: #FDE8E8; color: #9B1C1C; font-weight: 800; padding: 4px 10px; border-radius: 12px; font-size: 11px;">REMEDIAL (&lt;75)</span>`;
+
+        tableHtml += `
+            <tr style="background: ${bgRow}; border-bottom: 1px solid #e2e8f0;">
+                <td style="padding: 10px 12px; font-weight: 700; color: #64748b;">${idx + 1}</td>
+                <td style="padding: 10px 12px; font-weight: 800; color: #1e293b;">${escapeHtml(s.name)}</td>
+                <td style="padding: 10px 12px; font-weight: 600; color: #475569;">${escapeHtml(s.class)}</td>
+                <td style="padding: 10px 12px; text-align: center; font-weight: 700; color: #4C1D95;">${q1Val}</td>
+                <td style="padding: 10px 12px; text-align: center; font-weight: 700; color: #4C1D95;">${q2Val}</td>
+                <td style="padding: 10px 12px; text-align: center; font-weight: 700; color: #4C1D95;">${q3Val}</td>
+                <td style="padding: 10px 12px; text-align: center; font-weight: 900; font-size: 15px; color: ${accum.passed ? '#059669' : '#DC2626'};">${accum.finalScore}</td>
+                <td style="padding: 10px 12px; text-align: center;">${statusBadge}</td>
+            </tr>
+        `;
+    });
+
+    tableHtml += `
+            </tbody>
+        </table>
+    `;
+
+    tableContainer.innerHTML = tableHtml;
+}
+
 // Window Expose Delete Quiz Functions
 window.deleteQuizResult = async function(id, name) {
     if (!confirm(`Apakah Anda yakin ingin menghapus 1 hasil kuis ini milik "${name}"?`)) return;
     try {
-        if (isFirebaseOnline && id && !id.startsWith("local-")) {
+        if (isFirebaseOnline && id && !id.startsWith("demo-") && !id.startsWith("local-")) {
             await deleteDoc(doc(db, "student_quiz_results", id));
             showToast(`🗑️ Hasil kuis "${name}" berhasil dihapus dari Firestore!`);
         } else {
@@ -444,7 +675,7 @@ window.deleteStudentAllResults = async function(name, className) {
     try {
         const toDelete = quizResultsList.filter(q => q.name === name && q.class === className);
         for (const item of toDelete) {
-            if (isFirebaseOnline && item.id && !item.id.startsWith("local-")) {
+            if (isFirebaseOnline && item.id && !item.id.startsWith("demo-") && !item.id.startsWith("local-")) {
                 await deleteDoc(doc(db, "student_quiz_results", item.id));
             }
         }
@@ -461,26 +692,46 @@ window.deleteStudentAllResults = async function(name, className) {
     }
 };
 
-
-
-
 function downloadQuizCSV() {
-    if (quizResultsList.length === 0) {
+    let sourceData = quizResultsList.length > 0 ? quizResultsList : defaultQuizResults;
+
+    if (sourceData.length === 0) {
         showToast("⚠️ Belum ada data nilai kuis untuk diunduh.");
         return;
     }
-    let csvContent = "data:text/csv;charset=utf-8,Nama Siswa,Kelas,Kuis,Nilai,Waktu\n";
-    quizResultsList.forEach(q => {
-        csvContent += `"${q.name}","${q.class}","${q.title}",${q.score},"${q.time}"\n`;
+
+    // Group by student
+    const studentMap = new Map();
+    sourceData.forEach(q => {
+        const key = `${q.name}__${q.class}`;
+        if (!studentMap.has(key)) {
+            studentMap.set(key, { name: q.name, class: q.class, quizzes: [] });
+        }
+        studentMap.get(key).quizzes.push(q);
     });
+
+    let csvContent = "data:text/csv;charset=utf-8,No,Nama Siswa,Kelas,Kuis 1 (20%),Kuis 2 (40%),Kuis 3 (40%),Nilai Akhir (Akumulasi),Status KKM\n";
+
+    let index = 1;
+    studentMap.forEach(s => {
+        const accum = calculateStudentAccumulatedGrade(s.quizzes);
+        const q1Text = accum.q1 ? accum.q1.score : "-";
+        const q2Text = accum.q2 ? accum.q2.score : "-";
+        const q3Text = accum.q3 ? accum.q3.score : "-";
+        const statusText = accum.passed ? "TUNTAS (>=75)" : "REMEDIAL (<75)";
+
+        csvContent += `${index},"${s.name}","${s.class}",${q1Text},${q2Text},${q3Text},${accum.finalScore},"${statusText}"\n`;
+        index++;
+    });
+
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `Rekap_Nilai_Kuis_Siswa_${new Date().toISOString().slice(0,10)}.csv`);
+    link.setAttribute("download", `Rekap_Akumulasi_Nilai_Kuis_${new Date().toISOString().slice(0, 10)}.csv`);
     document.body.appendChild(link);
     link.click();
     link.remove();
-    showToast("📥 File Rekap Nilai Kuis CSV berhasil diunduh!");
+    showToast("📥 File Rekap Akumulasi Nilai CSV berhasil diunduh!");
 }
 
 function renderStudentLoginsMonitor(studentList) {

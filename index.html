@@ -89,46 +89,77 @@
                     </div>
                 </div>
 
-                <!-- TAB 3: Hasil & Nilai Kuis Siswa (Live Real-Time Monitoring) -->
+                <!-- TAB 3: Hasil & Nilai Kuis Siswa (Live Real-Time Monitoring & Akumulasi Nilai) -->
                 <div class="tab-content hidden" id="tab-hasilkuis">
                     <div class="main-card purple-top-accent">
                         <div class="card-header-row">
                             <div class="title-group">
                                 <span class="card-icon">📊</span>
                                 <div>
-                                    <h3>Monitoring Hasil & Nilai Kuis Siswa</h3>
-                                    <p class="subtitle">Rekapitulasi dan pemantauan nilai kuis edukasi ekonomi siswa secara real-time dari Firebase.</p>
+                                    <h3>Monitoring Hasil & Akumulasi Nilai Kuis Siswa</h3>
+                                    <p class="subtitle">Rekapitulasi real-time nilai 3 kuis dengan bobot: Kuis 1 (20%), Kuis 2 (40%), dan Kuis 3 / Asesmen Akhir (40%).</p>
                                 </div>
                             </div>
                             <button class="btn btn-pill" id="btnExportQuizCSV" style="background: #10B981; color: white; border: none; font-weight: 700; cursor: pointer;">📥 Unduh Rekap CSV</button>
                         </div>
 
+                        <!-- Info Banner Bobot Penilaian -->
+                        <div style="background: #F3E8FF; border: 1.5px dashed #A855F7; border-radius: 10px; padding: 10px 14px; margin-top: 14px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                            <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: #6B21A8; flex-wrap: wrap;">
+                                <span>⚖️ Formula Bobot Penilaian:</span>
+                                <span style="background: #ffffff; padding: 3px 8px; border-radius: 6px; border: 1px solid #D8B4FE; color: #7E22CE;">Kuis 1: 20%</span>
+                                <span>+</span>
+                                <span style="background: #ffffff; padding: 3px 8px; border-radius: 6px; border: 1px solid #D8B4FE; color: #7E22CE;">Kuis 2: 40%</span>
+                                <span>+</span>
+                                <span style="background: #ffffff; padding: 3px 8px; border-radius: 6px; border: 1px solid #D8B4FE; color: #7E22CE;">Kuis 3 / Asesmen: 40%</span>
+                            </div>
+                            <div style="font-size: 12px; font-weight: 700; color: #7E22CE; background: #ffffff; padding: 3px 10px; border-radius: 20px; border: 1px solid #C084FC;">
+                                Total Bobot = 100% • KKM = 75
+                            </div>
+                        </div>
+
                         <!-- Ringkasan Statistik Kuis -->
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-top: 15px; margin-bottom: 18px;">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-top: 15px; margin-bottom: 18px;">
                             <div style="background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px; padding: 12px; text-align: center;">
-                                <div style="font-size: 11px; color: #64748b; font-weight: 700;">TOTAL KUIS DIIKUTI</div>
-                                <div style="font-size: 22px; font-weight: 800; color: #1e293b; margin-top: 2px;" id="statTotalQuiz">0</div>
+                                <div style="font-size: 11px; color: #64748b; font-weight: 700;">TOTAL SISWA</div>
+                                <div style="font-size: 22px; font-weight: 800; color: #1e293b; margin-top: 2px;" id="statTotalStudents">0</div>
                             </div>
                             <div style="background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px; padding: 12px; text-align: center;">
-                                <div style="font-size: 11px; color: #64748b; font-weight: 700;">RATA-RATA NILAI</div>
-                                <div style="font-size: 22px; font-weight: 800; color: #0284c7; margin-top: 2px;" id="statAvgScore">0</div>
+                                <div style="font-size: 11px; color: #64748b; font-weight: 700;">RATA-RATA AKUMULASI</div>
+                                <div style="font-size: 22px; font-weight: 800; color: #7C3AED; margin-top: 2px;" id="statAvgScore">0</div>
                             </div>
                             <div style="background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px; padding: 12px; text-align: center;">
-                                <div style="font-size: 11px; color: #64748b; font-weight: 700;">NILAI SEMPURNA (100)</div>
-                                <div style="font-size: 22px; font-weight: 800; color: #16a34a; margin-top: 2px;" id="statPerfectCount">0</div>
+                                <div style="font-size: 11px; color: #64748b; font-weight: 700;">SISWA TUNTAS (≥75)</div>
+                                <div style="font-size: 22px; font-weight: 800; color: #16a34a; margin-top: 2px;" id="statPassedCount">0</div>
+                            </div>
+                            <div style="background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px; padding: 12px; text-align: center;">
+                                <div style="font-size: 11px; color: #64748b; font-weight: 700;">REMEDIAL (&lt;75)</div>
+                                <div style="font-size: 22px; font-weight: 800; color: #dc2626; margin-top: 2px;" id="statRemedialCount">0</div>
                             </div>
                         </div>
 
-                        <!-- Filter & Search Bar -->
-                        <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
-                            <input type="text" id="searchQuizStudent" placeholder="🔍 Cari Nama Siswa..." style="flex: 1; min-width: 180px; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px;">
-                            <select id="filterQuizClass" style="padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px; background: white;">
-                                <option value="all">Semua Kelas</option>
-                            </select>
+                        <!-- Filter, Search Bar & Mode Toggle -->
+                        <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; align-items: center; justify-content: space-between;">
+                            <div style="display: flex; gap: 10px; flex: 1; min-width: 260px;">
+                                <input type="text" id="searchQuizStudent" placeholder="🔍 Cari Nama Siswa..." style="flex: 1; min-width: 160px; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px;">
+                                <select id="filterQuizClass" style="padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px; background: white;">
+                                    <option value="all">Semua Kelas</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Toggle Mode View -->
+                            <div style="display: flex; background: #f1f5f9; border: 1.5px solid #cbd5e1; border-radius: 8px; padding: 3px; gap: 4px;">
+                                <button id="btnViewMasterDetail" class="quiz-view-toggle active" style="padding: 6px 12px; border: none; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; background: #7C3AED; color: white;">
+                                    👤 Detail Per Siswa
+                                </button>
+                                <button id="btnViewTable" class="quiz-view-toggle" style="padding: 6px 12px; border: none; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; background: transparent; color: #64748b;">
+                                    📋 Tabel Rekap Akumulasi
+                                </button>
+                            </div>
                         </div>
 
-                        <!-- Layout Interaktif Master-Detail Siswa & Hasil Kuis -->
-                        <div style="display: grid; grid-template-columns: minmax(240px, 280px) 1fr; gap: 16px; min-height: 380px;">
+                        <!-- MODE 1: Master-Detail Layout -->
+                        <div id="quizMasterDetailViewContainer" style="display: grid; grid-template-columns: minmax(240px, 280px) 1fr; gap: 16px; min-height: 380px;">
                             <!-- Panel Kiri: Daftar Nama Siswa yang Sudah Mengerjakan Kuis -->
                             <div style="background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px; padding: 12px; display: flex; flex-direction: column;">
                                 <div style="font-weight: 700; font-size: 13px; color: #334155; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between;">
@@ -142,13 +173,19 @@
                                 </div>
                             </div>
 
-                            <!-- Panel Kanan: Rincian Hasil Kuis Siswa yang Dipilih -->
+                            <!-- Panel Kanan: Rincian Akumulasi & Hasil Kuis Siswa -->
                             <div id="studentDetailView" style="background: #ffffff; border: 2px solid #e2e8f0; border-radius: 12px; padding: 16px; display: flex; flex-direction: column;">
                                 <div class="empty-state-banner">
-                                    <p>👈 Klik salah satu nama siswa di sebelah kiri untuk melihat rincian hasil kuisnya.</p>
+                                    <p>👈 Klik salah satu nama siswa di sebelah kiri untuk melihat rincian akumulasi nilai kuisnya.</p>
                                 </div>
                             </div>
                         </div>
+
+                        <!-- MODE 2: Tabel Rekap Akumulasi (Hidden by default) -->
+                        <div id="quizTableViewContainer" class="hidden" style="background: white; border: 2px solid #e2e8f0; border-radius: 12px; padding: 16px; overflow-x: auto;">
+                            <div id="quizTableContent"></div>
+                        </div>
+
                     </div>
                 </div>
 
