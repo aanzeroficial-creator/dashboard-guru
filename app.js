@@ -431,7 +431,7 @@ function renderQuizResultsMonitor() {
 
         masterHtml += `
             <div onclick="selectStudentForQuiz('${escapeHtml(sKey)}')" 
-                 style="background: ${bg}; border: 2px solid ${border}; border-radius: 10px; padding: 10px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: all 0.2s ease;">
+                 style="background: ${bg}; border: 2px solid ${border}; border-radius: 10px; padding: 10px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: all 0.2s;">
                 <div style="display: flex; align-items: center; gap: 10px;">
                     <img src="${avatar}" style="width: 36px; height: 36px; border-radius: 50%; background: #e2e8f0;">
                     <div>
@@ -481,18 +481,18 @@ function renderStudentDetailView(studentObj) {
             </div>
             <div style="display: flex; align-items: center; gap: 8px;">
                 <button onclick="deleteStudentAllResults('${escapeHtml(studentObj.name)}', '${escapeHtml(studentObj.class)}')" 
-                        style="background: #FEF2F2; color: #EF4444; border: 1.5px solid #FCA5A5; border-radius: 8px; padding: 7px 10px; font-size: 11px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s ease;">
+                        style="background: #FEF2F2; color: #EF4444; border: 1.5px solid #FCA5A5; border-radius: 8px; padding: 7px 10px; font-size: 11px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
                     🗑️ Hapus Data Siswa Ini
                 </button>
             </div>
         </div>
 
         <!-- Box Card Akumulasi Nilai (Weighted 20% - 40% - 40%) -->
-        <div style="background: linear-gradient(135deg, #F3E8FF 0%, #EDE9FE 100%); border: 2px solid #DDD6FE; border-radius: 14px; padding: 14px; margin-bottom: 16px; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.06);">
+        <div style="background: linear-gradient(135deg, #F3E8FF 0%, #EDE9FE 100%); border: 2px solid #DDD6FE; border-radius: 14px; padding: 14px; margin-bottom: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.04);">
             <div style="font-size: 12px; font-weight: 800; color: #6D28D9; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px;">
                 <span>🧮 AKUMULASI NILAI AKHIR (BOBOT: 20% + 40% + 40%)</span>
-                <span style="font-size: 11px; background: #ffffff; padding: 3px 10px; border-radius: 12px; color: ${accum.passed ? '#059669' : '#DC2626'}; border: 1.5px solid ${accum.passed ? '#A7F3D0' : '#FCA5A5'}; font-weight: 800;">
-                    ${accum.passed ? '✅ TUNTAS KKM (≥75)' : '⚠️ BELUM TUNTAS (<75)'}
+                <span style="font-size: 11px; background: #ffffff; padding: 3px 10px; border-radius: 12px; color: ${accum.passed ? '#059669' : '#DC2626'}; border: 1.5px solid ${accum.passed ? '#A7F3D0' : '#FECACA'}; font-weight: 800;">
+                    ${accum.passed ? '✅ TUNTAS KKTP (≥75)' : '⚠️ BELUM TUNTAS (<75)'}
                 </span>
             </div>
             
@@ -532,7 +532,7 @@ function renderStudentDetailView(studentObj) {
             </div>
 
             <!-- Formula Summary Footer -->
-            <div style="display: flex; align-items: center; justify-content: space-between; background: #ffffff; padding: 10px 14px; border-radius: 10px; border: 1.5px solid #C084FC; flex-wrap: wrap; gap: 8px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; background: #ffffff; padding: 10px 14px; border-radius: 10px; border: 1.5px solid #C084FC; flex-wrap: wrap; gap: 10px;">
                 <div>
                     <div style="font-size: 10px; color: #64748B; font-weight: 700;">RUMUS AKUMULASI</div>
                     <div style="font-size: 12px; font-weight: 700; color: #4C1D95;">
@@ -575,7 +575,7 @@ function renderStudentDetailView(studentObj) {
                     <div style="font-size: 11px; color: #475569; margin-top: 4px; font-style: italic;">💡 Evaluation Note: "${evalText}"</div>
                     <div style="margin-top: 6px;">
                         <button onclick="deleteQuizResult('${q.id}', '${escapeHtml(q.name)}')" 
-                                style="background: #FEE2E2; color: #DC2626; border: 1px solid #FCA5A5; border-radius: 6px; padding: 3px 8px; font-size: 11px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s ease;">
+                                style="background: #FEE2E2; color: #DC2626; border: 1px solid #FCA5A5; border-radius: 6px; padding: 3px 8px; font-size: 11px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
                             🗑️ Hapus Hasil Ini
                         </button>
                     </div>
@@ -612,7 +612,7 @@ function renderQuizTableView(students) {
                     <th style="padding: 10px 12px; text-align: center;">Kuis 2 (40%)</th>
                     <th style="padding: 10px 12px; text-align: center;">Kuis 3 / Asesmen (40%)</th>
                     <th style="padding: 10px 12px; text-align: center;">Nilai Akhir (Akumulasi)</th>
-                    <th style="padding: 10px 12px; text-align: center; border-top-right-radius: 8px;">Status KKM</th>
+                    <th style="padding: 10px 12px; text-align: center; border-top-right-radius: 8px;">Status KKTP</th>
                 </tr>
             </thead>
             <tbody>
@@ -625,7 +625,7 @@ function renderQuizTableView(students) {
         const q3Val = accum.q3 ? accum.q3.score : "-";
         const bgRow = idx % 2 === 0 ? "#ffffff" : "#f8fafc";
         const statusBadge = accum.passed 
-            ? `<span style="background: #DEF7EC; color: #03543F; font-weight: 800; padding: 4px 10px; border-radius: 12px; font-size: 11px;">TUNTAS (≥75)</span>`
+            ? `<span style="background: #DEF7EC; color: #03543F; font-weight: 800; padding: 4px 10px; border-radius: 12px; font-size: 11px;">TUNTAS KKTP (≥75)</span>`
             : `<span style="background: #FDE8E8; color: #9B1C1C; font-weight: 800; padding: 4px 10px; border-radius: 12px; font-size: 11px;">REMEDIAL (&lt;75)</span>`;
 
         tableHtml += `
@@ -710,7 +710,7 @@ function downloadQuizCSV() {
         studentMap.get(key).quizzes.push(q);
     });
 
-    let csvContent = "data:text/csv;charset=utf-8,No,Nama Siswa,Kelas,Kuis 1 (20%),Kuis 2 (40%),Kuis 3 (40%),Nilai Akhir (Akumulasi),Status KKM\n";
+    let csvContent = "data:text/csv;charset=utf-8,No,Nama Siswa,Kelas,Kuis 1 (20%),Kuis 2 (40%),Kuis 3 (40%),Nilai Akhir (Akumulasi),Status KKTP\n";
 
     let index = 1;
     studentMap.forEach(s => {
@@ -718,7 +718,7 @@ function downloadQuizCSV() {
         const q1Text = accum.q1 ? accum.q1.score : "-";
         const q2Text = accum.q2 ? accum.q2.score : "-";
         const q3Text = accum.q3 ? accum.q3.score : "-";
-        const statusText = accum.passed ? "TUNTAS (>=75)" : "REMEDIAL (<75)";
+        const statusText = accum.passed ? "TUNTAS KKTP (>=75)" : "REMEDIAL (<75)";
 
         csvContent += `${index},"${s.name}","${s.class}",${q1Text},${q2Text},${q3Text},${accum.finalScore},"${statusText}"\n`;
         index++;
@@ -761,7 +761,7 @@ function renderStudentLoginsMonitor(studentList) {
         const statusText = "Online 🟢";
 
         html += `
-            <div style="background: #ffffff; border: 2px solid ${borderCol}; border-radius: 12px; padding: 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.05);">
+            <div style="background: #ffffff; border: 2px solid ${borderCol}; border-radius: 12px; padding: 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.04);">
                 <div style="display: flex; align-items: center; gap: 10px;">
                     <img src="${avatar}" style="width: 44px; height: 44px; border-radius: 50%; background: #edf2f7;">
                     <div>
