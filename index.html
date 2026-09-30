@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dasbor Saku Pintar - Dashboard Guru</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-layout">
+
+        <!-- Left Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="profile-section">
+                <div class="avatar-container">
+                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=AanRifai" alt="Avatar Aan Rifai"
+                        class="avatar-img">
+                </div>
+                <div class="user-info">
+                    <h3 class="user-name">Aan Rifai, S.Pd.</h3>
+                    <p class="user-role">Guru Gaji Sejahtera</p>
+                </div>
+                <button class="btn-gear" title="Pengaturan Profile">⚙️</button>
+            </div>
+
+            <nav class="sidebar-nav">
+                <button class="nav-tab active" data-tab="monitorsiswa">
+                    <span class="nav-icon">📡</span>
+                    <span class="nav-text">Live Monitor Siswa</span>
+                </button>
+                <button class="nav-tab" data-tab="jejak">
+                    <span class="nav-icon">📝</span>
+                    <span class="nav-text">Jejak Aktivitas</span>
+                </button>
+                <button class="nav-tab" data-tab="hasilkuis">
+                    <span class="nav-icon">📊</span>
+                    <span class="nav-text">Hasil & Nilai Kuis Siswa</span>
+                </button>
+                <button class="nav-tab highlight-tab" data-tab="manajementoko">
+                    <span class="nav-icon">🏪</span>
+                    <span class="nav-text">Manajemen Toko & Barang</span>
+                </button>
+
+            </nav>
+        </aside>
+
+        <!-- Right Main Wrapper -->
+        <div class="main-wrapper">
+
+            <!-- Top Header Bar -->
+            <header class="top-header">
+                <div class="header-brand">
+                    <h2>Dasbord Guru Game Edu</h2>
+                </div>
+                <div class="header-right">
+                    <button class="btn-pill btn-music" id="btnMusicToggle">Musik: ON</button>
+                </div>
+
+            </header>
+
+            <!-- Main Content Container -->
+            <main class="content-body">
+
+                <!-- TAB 1: Live Monitor Siswa (Layout seperti di Gambar) -->
+                <div class="tab-content" id="tab-monitorsiswa">
+                    <div class="main-card green-top-accent">
+                        <div class="card-header-row">
+                            <div class="title-group">
+                                <span class="card-icon">📡</span>
+                                <div>
+                                    <h3>Live Monitor Siswa Aktif</h3>
+                                    <p class="subtitle">Daftar siswa yang sedang membuka aplikasi kelas. (Otomatis
+                                        diperbarui secara real-time)</p>
+                                </div>
+                            </div>
+                            <span class="badge-online" id="onlineBadge">0 Siswa Online</span>
+                        </div>
+                        <div id="studentMonitorContainer">
+                            <div class="empty-state-banner">
+                                <p>Belum ada siswa yang terdeteksi online saat ini.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 3: Hasil & Nilai Kuis Siswa (Live Real-Time Monitoring) -->
+                <div class="tab-content hidden" id="tab-hasilkuis">
+                    <div class="main-card purple-top-accent">
+                        <div class="card-header-row">
+                            <div class="title-group">
+                                <span class="card-icon">📊</span>
+                                <div>
+                                    <h3>Monitoring Hasil & Nilai Kuis Siswa</h3>
+                                    <p class="subtitle">Rekapitulasi dan pemantauan nilai kuis edukasi ekonomi siswa secara real-time dari Firebase.</p>
+                                </div>
+                            </div>
+                            <button class="btn btn-pill" id="btnExportQuizCSV" style="background: #10B981; color: white; border: none; font-weight: 700; cursor: pointer;">📥 Unduh Rekap CSV</button>
+                        </div>
+
+                        <!-- Ringkasan Statistik Kuis -->
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-top: 15px; margin-bottom: 18px;">
+                            <div style="background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px; padding: 12px; text-align: center;">
+                                <div style="font-size: 11px; color: #64748b; font-weight: 700;">TOTAL KUIS DIIKUTI</div>
+                                <div style="font-size: 22px; font-weight: 800; color: #1e293b; margin-top: 2px;" id="statTotalQuiz">0</div>
+                            </div>
+                            <div style="background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px; padding: 12px; text-align: center;">
+                                <div style="font-size: 11px; color: #64748b; font-weight: 700;">RATA-RATA NILAI</div>
+                                <div style="font-size: 22px; font-weight: 800; color: #0284c7; margin-top: 2px;" id="statAvgScore">0</div>
+                            </div>
+                            <div style="background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px; padding: 12px; text-align: center;">
+                                <div style="font-size: 11px; color: #64748b; font-weight: 700;">NILAI SEMPURNA (100)</div>
+                                <div style="font-size: 22px; font-weight: 800; color: #16a34a; margin-top: 2px;" id="statPerfectCount">0</div>
+                            </div>
+                        </div>
+
+                        <!-- Filter & Search Bar -->
+                        <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
+                            <input type="text" id="searchQuizStudent" placeholder="🔍 Cari Nama Siswa..." style="flex: 1; min-width: 180px; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px;">
+                            <select id="filterQuizClass" style="padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px; background: white;">
+                                <option value="all">Semua Kelas</option>
+                            </select>
+                        </div>
+
+                        <!-- Layout Interaktif Master-Detail Siswa & Hasil Kuis -->
+                        <div style="display: grid; grid-template-columns: minmax(240px, 280px) 1fr; gap: 16px; min-height: 380px;">
+                            <!-- Panel Kiri: Daftar Nama Siswa yang Sudah Mengerjakan Kuis -->
+                            <div style="background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px; padding: 12px; display: flex; flex-direction: column;">
+                                <div style="font-weight: 700; font-size: 13px; color: #334155; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between;">
+                                    <span>👤 Daftar Siswa Kuis</span>
+                                    <span id="studentCountBadge" style="background: #e2e8f0; color: #475569; font-size: 11px; padding: 2px 8px; border-radius: 10px;">0 Siswa</span>
+                                </div>
+                                <div id="studentMasterList" style="display: flex; flex-direction: column; gap: 8px; overflow-y: auto; max-height: 420px; padding-right: 4px;">
+                                    <div class="empty-state-banner">
+                                        <p>Belum ada data siswa.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Panel Kanan: Rincian Hasil Kuis Siswa yang Dipilih -->
+                            <div id="studentDetailView" style="background: #ffffff; border: 2px solid #e2e8f0; border-radius: 12px; padding: 16px; display: flex; flex-direction: column;">
+                                <div class="empty-state-banner">
+                                    <p>👈 Klik salah satu nama siswa di sebelah kiri untuk melihat rincian hasil kuisnya.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 2: Manajemen Toko & Barang (Input Game Belanja & Firebase Sync) -->
+                <div class="tab-content hidden" id="tab-manajementoko">
+                    <div class="dashboard-grid">
+
+                        <!-- Form Input Barang Toko -->
+                        <div class="main-card purple-top-accent">
+                            <div class="card-header">
+                                <h3><span id="formModeTitle">➕ Input Barang Toko Belanja Baru</span></h3>
+                                <p class="subtitle">Barang yang diinput akan tersimpan ke Firebase (game-edu-da178) dan
+                                    langsung muncul di Rak Toko Game Aldo</p>
+                            </div>
+
+                            <form id="itemForm" class="form-layout">
+                                <input type="hidden" id="itemId" value="">
+
+                                <div class="form-group">
+                                    <label for="itemName">Nama Barang Belanja <span class="req">*</span></label>
+                                    <input type="text" id="itemName" placeholder="Contoh: Susu UHT / Buku Tulis"
+                                        required>
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="itemPrice">Harga Barang (Rp) <span class="req">*</span></label>
+                                        <input type="number" id="itemPrice" placeholder="Contoh: 12000" min="100"
+                                            step="100" required>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="itemCategory">Kategori Toko <span class="req">*</span></label>
+                                        <select id="itemCategory" required>
+                                            <option value="makanan">Toko Makanan</option>
+                                            <option value="alat_tulis">Toko Buku & Alat Tulis</option>
+                                            <option value="mainan">Toko Mainan</option>
+                                            <option value="pakaian">Toko Pakaian</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="itemFile">📁 Upload Foto Barang dari Komputer</label>
+                                    <div class="file-upload-wrapper">
+                                        <input type="file" id="itemFile" accept="image/*" class="file-input">
+                                        <label for="itemFile" class="file-upload-btn">
+                                            <span>🖼️ Pilih File Gambar/Foto...</span>
+                                        </label>
+                                    </div>
+                                    <div class="image-preview-box hidden" id="imagePreviewBox">
+                                        <img id="imagePreviewImg" src="" alt="Preview Gambar">
+                                        <button type="button" class="remove-preview-btn" id="btnRemovePreview">✕ Hapus
+                                            Foto</button>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="itemIcon">Atau Path Aset / URL Gambar Manual</label>
+                                    <input type="text" id="itemIcon"
+                                        placeholder="res://aset 2d/1000513844-removebg-preview.png">
+                                    <small>Gunakan tombol upload di atas untuk foto dari komputer, atau isi Path manual
+                                        di sini.</small>
+                                </div>
+
+
+                                <div class="form-group">
+                                    <label for="itemDesc">Deskripsi Singkat</label>
+                                    <textarea id="itemDesc" rows="2"
+                                        placeholder="Keterangan barang belanja..."></textarea>
+                                </div>
+
+                                <div class="form-buttons">
+                                    <button type="submit" class="btn btn-save" id="btnSubmitForm">
+                                        <span>💾 Simpan ke Firebase & Game</span>
+                                    </button>
+                                    <button type="button" class="btn btn-cancel" id="btnResetForm"
+                                        style="display: none;">
+                                        <span>❌ Batal Edit</span>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Daftar Barang Toko (Etalase Data) -->
+                        <div class="main-card blue-top-accent">
+                            <div class="card-header-row">
+                                <div>
+                                    <h3>📦 Daftar Barang Toko Belanja</h3>
+                                    <p class="subtitle">Data tersimpan di Firebase Firestore `shop_items`</p>
+                                </div>
+                                <div class="actions-box">
+                                    <button class="btn btn-sm btn-outline" id="btnSyncFirebase">🔄 Sync
+                                        Firebase</button>
+                                    <button class="btn btn-sm btn-outline" id="btnExportJSON">📥 Export JSON</button>
+                                </div>
+                            </div>
+
+                            <div class="category-tabs" id="filterTabs">
+                                <button class="tab-pill active" data-cat="all">Semua Barang</button>
+                                <button class="tab-pill" data-cat="makanan">Toko Makanan</button>
+                                <button class="tab-pill" data-cat="alat_tulis">Toko Buku & Alat</button>
+                                <button class="tab-pill" data-cat="mainan">Toko Mainan</button>
+                                <button class="tab-pill" data-cat="pakaian">Toko Pakaian</button>
+                            </div>
+
+                            <div class="items-list-container" id="itemsGrid">
+                                <div class="loading-state">
+                                    <div class="spinner"></div>
+                                    <p>Memuat data barang belanja dari Firebase...</p>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Tab Fallback Placeholders for other menu tabs -->
+                <div class="tab-content hidden" id="tab-jejak">
+                    <div class="main-card">
+                        <h3>📝 Jejak Aktivitas Siswa</h3>
+                        <p class="subtitle">Riwayat transaksi belanja dan aktivitas siswa kelas.</p>
+                        <div class="empty-state-banner">
+                            <p>Belum ada data aktivitas tercatat.</p>
+                        </div>
+                    </div>
+                </div>
+
+
+
+            </main>
+
+        </div>
+
+    </div>
+
+    <!-- Inline script guarantee for tab switching even on local file:// protocol -->
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const navTabs = document.querySelectorAll(".nav-tab");
+            const tabContents = document.querySelectorAll(".tab-content");
+
+            navTabs.forEach((btn) => {
+                btn.addEventListener("click", () => {
+                    const targetTab = btn.getAttribute("data-tab");
+
+                    navTabs.forEach(t => t.classList.remove("active"));
+                    btn.classList.add("active");
+
+                    tabContents.forEach(c => {
+                        if (c.id === `tab-${targetTab}`) {
+                            c.classList.remove("hidden");
+                        } else {
+                            c.classList.add("hidden");
+                        }
+                    });
+                });
+            });
+        });
+    </script>
+    <script type="module" src="app.js?v=4"></script>
+
+
+</body>
+
+</html>
